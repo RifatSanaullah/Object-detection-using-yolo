@@ -12,6 +12,13 @@ Usage:
                                                              'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 """
 
+from deepface import DeepFace
+from deepface.detectors import FaceDetector
+import time
+import requests
+import json
+
+
 import argparse
 import os
 import sys
@@ -37,7 +44,7 @@ from utils.torch_utils import select_device, time_sync
 
 @torch.no_grad()
 def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
-        source='0',  # file/dir/URL/glob, 0 for webcam
+        source=0,  # file/dir/URL/glob, 0 for webcam
         imgsz=640,  # inference size (pixels)
         conf_thres=0.25,  # confidence threshold
         iou_thres=0.45,  # NMS IOU threshold
@@ -62,6 +69,18 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         ):
+    
+
+    cap = cv2.VideoCapture(0)
+    db_path = "./faces"
+    model_name = "VGG-Face"
+    detector_backend = "opencv"
+    distance_metric = "cosine"
+    frame_threshold = 5
+    face_included_frames = 0
+    face_detected = False
+    freeze = False
+    
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
     is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
@@ -92,6 +111,75 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         cudnn.benchmark = True  # set True to speed up constant image size inference
         dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt)
         bs = len(dataset)  # batch_size
+        
+        # ret, frame = cap.read()
+        # print(ret)
+        # print(frame)
+
+        # face_detector = FaceDetector.build_model(detector_backend)
+        # img = frame
+        # faces = []
+        
+        # try:
+                    # #faces store list of detected_face and region pair
+            # faces = FaceDetector.detect_faces(face_detector, detector_backend, img, align = False)
+        # except: #to avoid exception if no face detected
+            # faces = []
+        
+        # if len(faces) == 0:
+            # face_included_frames = 0
+
+        # detected_faces = []
+        # face_index = 0
+        # for face, (x, y, w, h) in faces:
+            # if w > 130: #discard small detected faces
+
+                # face_detected = True
+                # if face_index == 0:
+                    # face_included_frames = face_included_frames + 1 #increase frame for a single face
+
+                # cv2.rectangle(img, (x,y), (x+w,y+h), (67,67,67), 1) #draw rectangle to main image
+
+                # cv2.putText(img, str(frame_threshold - face_included_frames), (int(x+w/4),int(y+h/1.5)), cv2.FONT_HERSHEY_SIMPLEX, 4, (255, 255, 255), 2)
+
+                # detected_face = img[int(y):int(y+h), int(x):int(x+w)] #crop detected face
+                # if (frame_threshold - face_included_frames) == 0:
+                    # url = "http://23.119.176.135:2288/api/FaceRecognitionDetail/Create"
+
+                    # payload = json.dumps({
+                    # "image": "",
+                    # "FaceRecognitionDetail": {
+                        # "PersonName": "Rifat"
+                    # }
+                    # })
+                    # headers = {
+                    # 'Content-Type': 'application/json'
+                    # }
+
+                    # response = requests.request("POST", url, headers=headers, data=payload)
+
+                    # print(response.text)
+
+                # #-------------------------------------
+
+                # detected_faces.append((x,y,w,h))
+                # face_index = face_index + 1
+
+                # #-------------------------------------
+
+        # if face_detected == True and face_included_frames == frame_threshold and freeze == False:
+            # freeze = True
+            # base_img = img.copy()
+            # detected_faces_final = detected_faces.copy()
+            # tic = time.time()
+            
+        # cv2.imshow("Capturing",frame)
+
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+            # return 0;
+
+
+    
     else:
         print("picture loaded")
         dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt)
@@ -243,3 +331,5 @@ def main(opt):
 if __name__ == "__main__":
     opt = parse_opt()
     main(opt)
+    # cap.release()
+    # cv2.destroyAllWindows()
